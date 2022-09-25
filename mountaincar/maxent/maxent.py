@@ -4,9 +4,9 @@ def get_reward(feature_matrix, theta, n_states, state_idx):
     irl_rewards = feature_matrix.dot(theta).reshape((n_states,))
     return irl_rewards[state_idx]
 
+# count how many a certain state is dropped by based on several trajectories
 def expert_feature_expectations(feature_matrix, demonstrations):
-    feature_expectations = np.zeros(feature_matrix.shape[0])
-    
+    feature_expectations = np.zeros(feature_matrix.shape[0]) 
     for demonstration in demonstrations:
         for state_idx, _, _ in demonstration:
             feature_expectations += feature_matrix[int(state_idx)]

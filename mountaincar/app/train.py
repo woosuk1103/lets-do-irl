@@ -18,9 +18,14 @@ def idx_state(env, state):
     env_low = env.observation_space.low
     env_high = env.observation_space.high
     env_distance = (env_high - env_low) / one_feature
-    positioone_feature = int((state[0] - env_low[0]) / env_distance[0])
-    velocity_idx = int((state[1] - env_low[1]) / env_distance[1])
-    state_idx = positioone_feature + velocity_idx * one_feature
+    if state[1] == {}:
+        positioone_feature = int((state[0][0] - env_low[0]) / env_distance[0]) #
+        velocity_idx = int((state[0][1] - env_low[1]) / env_distance[1])
+        state_idx = positioone_feature + velocity_idx * one_feature
+    else:
+        positioone_feature = int((state[0] - env_low[0]) / env_distance[0]) #
+        velocity_idx = int((state[1] - env_low[1]) / env_distance[1])
+        state_idx = positioone_feature + velocity_idx * one_feature
     return state_idx
 
 def update_q_table(state, action, reward, next_state):

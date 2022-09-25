@@ -12,9 +12,14 @@ def idx_to_state(env, state):
     env_low = env.observation_space.low
     env_high = env.observation_space.high
     env_distance = (env_high - env_low) / N_idx
-    position_idx = int((state[0] - env_low[0]) / env_distance[0])
-    velocity_idx = int((state[1] - env_low[1]) / env_distance[1])
-    state_idx = position_idx + velocity_idx * N_idx
+    if state[1] == {}:
+        position_idx = int((state[0][0] - env_low[0]) / env_distance[0])
+        velocity_idx = int((state[0][1] - env_low[1]) / env_distance[1])
+        state_idx = position_idx + velocity_idx * N_idx
+    else:
+        position_idx = int((state[0] - env_low[0]) / env_distance[0])
+        velocity_idx = int((state[1] - env_low[1]) / env_distance[1])
+        state_idx = position_idx + velocity_idx * N_idx
     return state_idx
 
 
@@ -28,7 +33,7 @@ if __name__ == '__main__':
 
     # Create a new game instance.
     env = gym.make('MountainCar-v0')
-    n_episode = 10 # test the agent 10times
+    n_episode = 50 # test the agent 10 times
     scores = []
 
     for ep in range(n_episode):
@@ -43,7 +48,7 @@ if __name__ == '__main__':
 
             action = np.argmax(q_table[state_idx])
 
-            next_state, reward, done, _ = env.step(action)
+            next_state, reward, done, _ , _ = env.step(action)
             next_state_idx = idx_to_state(env, next_state)
 
             score += reward

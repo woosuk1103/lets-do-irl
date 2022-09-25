@@ -34,7 +34,7 @@ for episode in range(20): # n_trajectories : 20
             break
 
         action = arrow_keys[key]
-        state, reward, done, _ = env.step(action)
+        state, reward, done, _ , _ = env.step(action)
 
         if state[0] >= env.env.goal_position and step > 129: # trajectory_length : 130
             break
@@ -42,12 +42,12 @@ for episode in range(20): # n_trajectories : 20
         trajectory.append((state[0], state[1], action))
         step += 1
 
-    # trajectory_numpy = np.array(trajectory, float)
-    # print("trajectory_numpy.shape", trajectory_numpy.shape)
-    # episode_step += 1
-    # trajectories.append(trajectory)
+    trajectory_numpy = np.array(trajectory, float)
+    print("trajectory_numpy.shape", trajectory_numpy.shape)
+    episode_step += 1
+    trajectories.append(trajectory)
 
-# np_trajectories = np.array(trajectories, float)
-# print("np_trajectories.shape", np_trajectories.shape)
+np_trajectories = np.array(trajectories, float)
+print("np_trajectories.shape", np_trajectories.shape)
 
-# np.save("expert_trajectories", arr=np_trajectories)
+np.save("expert_trajectories", arr=np_trajectories)

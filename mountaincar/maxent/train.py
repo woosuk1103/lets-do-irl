@@ -3,11 +3,12 @@ import pylab
 import numpy as np
 
 from maxent import *
+from maxent.expert_demo.environment import Moduleviser
 
 n_states = 400 # position - 20, velocity - 20
-n_actions = 3
+n_actions = 10
 one_feature = 20 # number of state per one feature
-q_table = np.zeros((n_states, n_actions)) # (400, 3)
+q_table = np.zeros((n_states, n_actions)) # (400, 10)
 feature_matrix = np.eye((n_states)) # (400, 400)
 
 gamma = 0.99
@@ -20,8 +21,11 @@ def idx_demo(env, one_feature):
     env_low = env.observation_space.low     
     env_high = env.observation_space.high   
     env_distance = (env_high - env_low) / one_feature  
-
+    # print("np.shape(env_distance):",np.shape(env_distance))
     raw_demo = np.load(file="expert_demo/expert_demo.npy")
+    # print('type(raw_demo):',type(raw_demo))
+    # print("np.shape(raw_demo):",np.shape(raw_demo))
+    # print("raw_demo[0]:",raw_demo[0])
     demonstrations = np.zeros((len(raw_demo), len(raw_demo[0]), 3))
 
     for x in range(len(raw_demo)):
@@ -32,33 +36,34 @@ def idx_demo(env, one_feature):
 
             demonstrations[x][y][0] = state_idx
             demonstrations[x][y][1] = raw_demo[x][y][2] 
-            
+    # print('type(demonstrations)',type(demonstrations))
+    # print('np.shape(demonstrations)',np.shape(demonstrations))    
     return demonstrations
 
 def idx_state(env, state):
     env_low = env.observation_space.low
     env_high = env.observation_space.high 
-    env_distance = (env_high - env_low) / one_feature 
+    env_distance = (env_high - env_low) / one_feature # one_feature = 20
     position_idx = int((state[0] - env_low[0]) / env_distance[0])
     velocity_idx = int((state[1] - env_low[1]) / env_distance[1])
     state_idx = position_idx + velocity_idx * one_feature
     return state_idx
 
 def update_q_table(state, action, reward, next_state):
-    q_1 = q_table[state][action]
-    q_2 = reward + gamma * max(q_table[next_state])
+    q_1 = q_table[state][action] #previous value
+    q_2 = reward + gamma * max(q_table[next_state]) # q_value calculation based on bellman equation
     q_table[state][action] += q_learning_rate * (q_2 - q_1)
 
 
 def main():
-    env = gym.make('MountainCar-v0')
+    # env = gym.make('MountainCar-v0')
+    env = Moduleviser()
     demonstrations = idx_demo(env, one_feature)
 
     expert = expert_feature_expectations(feature_matrix, demonstrations)
     learner_feature_expectations = np.zeros(n_states)
 
     theta = -(np.random.uniform(size=(n_states,)))
-
     episodes, scores = [], []
 
     for episode in range(30000):
@@ -72,12 +77,16 @@ def main():
         while True:
             state_idx = idx_state(env, state)
             action = np.argmax(q_table[state_idx])
-            next_state, reward, done, _ = env.step(action)
+            next_state, reward, done, _ , _ = env.step(action)
             
-            irl_reward = get_reward(feature_matrix, theta, n_states, state_idx)
+            # print('np.shape(feature_matrix):',np.shape(feature_matrix))
+            # print('np.shape(theta):',np.shape(theta))
+            # print('n_states:',n_states)
+            # print('state_idx:',state_idx)            
+            irl_reward = get_reward(feature_matrix, theta, n_states, state_idx) # extraction of reward
+            # print('irl_reward:',irl_reward)
             next_state_idx = idx_state(env, next_state)
             update_q_table(state_idx, action, irl_reward, next_state_idx)
-            
             learner_feature_expectations += feature_matrix[int(state_idx)]
 
             score += reward
